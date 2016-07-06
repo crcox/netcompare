@@ -36,11 +36,11 @@ import itertools
 import numpy.random as random
 
 parser = argparse.ArgumentParser(description=__doc__,formatter_class=argparse.RawDescriptionHelpFormatter)
-parser.add_argument('A', type=str, help='Path to nifti file containing sample of networks of type A.')
-parser.add_argument('B', type=str, help='Path to nifti file containing sample of networks of type B.')
+parser.add_argument('A', type=str, help='Path to nifti file containing networks of type A.')
+parser.add_argument('B', type=str, help='Path to nifti file containing networks of type B.')
 parser.add_argument('--nperms', type=int, default=10000, help='Number of permutations to establish empirical null.')
-parser.add_argument('--alpha', type=float, default=0.05, help='Threshold of statistical significance.')
-parser.add_argument('--permlog', type=str, default='permstat.1D', help='Name of logfile that will contain Jaccard stat at each permutation.')
+parser.add_argument('--alpha', type=float, default=0.05, help='Threshold of statistical significance. [default: 0.05]')
+parser.add_argument('--permlog', type=str, default='permstat.1D', help='Name of logfile that will contain Jaccard index at each permutation. [default: permstat.1D]')
 parser.add_argument('--histfig', action='store_true', help='Generate a histogram displaying the permutation distribution, with true statistic overlayed.')
 args = parser.parse_args()
 
@@ -68,7 +68,7 @@ n = m + B.shape[3]
 Nw = ((A.shape[3]**2) - A.shape[3]) / 2 + ((B.shape[3]**2) - B.shape[3]) / 2
 Nb = A.shape[3] * B.shape[3]
 
-# Compute Jaccard statistic
+# Compute Jaccard ratio
 within = (np.sum(np.tril(R[1:m,1:m],-1)) + np.sum(np.tril(R[m:n,m:n]))) / float(Nw)
 between = np.sum(R[1:m,m:n]) / float(Nb)
 r = within / between
@@ -97,7 +97,7 @@ with open(args.permlog, 'w') as f:
 p = np.sum(permlist > r) / args.nperms
 h = p < args.alpha
 
-print "Jaccard Statistic: {:.4f}".format(r)
+print "Jaccard Ratio (within/between): {:.4f}".format(r)
 print "p-value: {:.4f} (alpha: {:.4f})".format(p, args.alpha)
 
 if h:
@@ -109,6 +109,6 @@ if args.histfig:
     plt.hist(permlist)
     plt.axvline(r, color='r')
     plt.title("Empirical null distribution, with true value")
-    plt.xlabel("Jaccard statistic")
+    plt.xlabel("Jaccard ratio (within/between)")
     plt.ylabel("Frequency")
     plt.savefig('permdist.pdf')
